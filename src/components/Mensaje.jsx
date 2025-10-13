@@ -12,4 +12,4 @@ const Mensaje = () => {
     );
 }
 
-export default Mensaje;
+export default Mensaje; 
