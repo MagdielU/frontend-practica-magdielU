@@ -1,4 +1,3 @@
-
 const Ventas = () => {
 
     return (

@@ -2,16 +2,16 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // Importar componente Encabezado.
 import Encabezado from "./components/navegacion/Encabezado";
 // Importar las vistas.
-import Login from "./components/views/Login";
-import Inicio from "./components/views/Inicio";
-import Empleados from "./components/views/Empleados";
-import Categorias from "./components/views/Categorias";
-import Clientes from "./components/views/Clientes";
-import Productos from "./components/views/Productos";
-import Usuarios from "./components/views/Usuarios";
-import Ventas from "./components/views/Ventas";
-import Compras from "./components/views/Compras";
-import Catalogo from "./components/views/Catalogo";
+import Login from "./views/Login";
+import Inicio from "./views/Inicio";
+import Empleados from "./views/Empleados";
+import Categorias from "./views/Categorias";
+import Clientes from "./views/Clientes";
+import Productos from "./views/Productos";
+import Usuarios from "./views/Usuarios";
+import Ventas from "./views/Ventas";
+import Compras from "./views/Compras";
+import Catalogo from "./views/Catalogo";
 // Importar archivo de estilos.
 import "./App.css";
 
