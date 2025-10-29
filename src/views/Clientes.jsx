@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
-import {Container} from 'react-bootstrap';
+import {Container, Row, Col, Button} from 'react-bootstrap';
 import TablaClientes from '../components/clientes/TablaClientes';
+import CuadroBusquedas from '../components/busquedas/CuadroBusquedas';
 
 
 
@@ -8,6 +9,9 @@ const Clientes = () => {
 
     const [clientes, setClientes] = useState([]);
     const [cargando, setCargando] = useState(true);
+
+    const [clientesFiltrados, setClientesFiltrados] = useState([]);
+    const [textoBusqueda, setTextoBusqueda] = useState("");
 
     const obtenerClientes = async () =>{
         try{
@@ -20,12 +24,30 @@ const Clientes = () => {
             const datos = await respuesta.json();
 
             setClientes(datos);
+            setClientesFiltrados(datos);
             setCargando(false);
         }catch (error) {
                 console.log(error.message);
                 setCargando(false);
         }
     }
+
+    const manejarCambioBusqueda = (e) => {
+        const texto = e.target.value.toLowerCase();
+        setTextoBusqueda(texto);
+
+        const filtrados = clientes.filter(
+            (cliente) =>
+                cliente.primer_nombre.toLowerCase().includes(texto) ||
+                cliente.segundo_nombre.toLowerCase().includes(texto) ||
+                cliente.primer_apellido.toLowerCase().includes(texto) ||
+                cliente.segundo_apellido.toLowerCase().includes(texto) ||
+                cliente.direccion.toLowerCase().includes(texto) ||
+                cliente.cedula.toLowerCase().includes(texto) ||
+                cliente.celular.toLowerCase().includes(texto)
+        );
+        setClientesFiltrados(filtrados);
+    };
 
     useEffect(() =>{
         obtenerClientes();
@@ -36,9 +58,17 @@ const Clientes = () => {
         <Container className="mt-4">
             
         <h4>Clientes</h4>
+                <Row>
+                    <Col lg={5} md={8} sm={8} xs={7}>
+                        <CuadroBusquedas
+                            textoBusqueda={textoBusqueda}
+                            manejarCambioBusqueda={manejarCambioBusqueda}
+                        />
+                    </Col>
+                </Row>
 
         <TablaClientes
-         clientes={clientes}
+         clientes={clientesFiltrados}
           cargando={cargando}
         />
 
