@@ -1,14 +1,38 @@
+import { useState } from "react";
 import { Table, Spinner } from "react-bootstrap";
+import BotonOrden from "../ordenamiento/BotonOrden";
 
 const TablaUsuarios = ({ usuarios, cargando }) => {
 
-    if (cargando){
-        return(
-        <>
-        <Spinner animation="border" role="status">
-            <span className="visually-hidden">Cargando...</span>
-        </Spinner>
-        </>
+    const [orden, setOrden] = useState({ campo: "id_usuario", direccion: "asc" });
+
+    const manejarOrden = (campo) => {
+        setOrden((prev) => ({
+            campo,
+            direccion:
+                prev.campo === campo && prev.direccion === "asc" ? "desc" : "asc",
+        }));
+    };
+
+    const usuariosOrdenados = [...usuarios].sort((a, b) => {
+        const valorA = a[orden.campo];
+        const valorB = b[orden.campo];
+
+        if (typeof valorA === "number" && typeof valorB === "number") {
+            return orden.direccion === "asc" ? valorA - valorB : valorB - valorA;
+        }
+
+        const comparacion = String(valorA).localeCompare(String(valorB));
+        return orden.direccion === "asc" ? comparacion : -comparacion;
+    });
+
+    if (cargando) {
+        return (
+            <>
+                <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                </Spinner>
+            </>
         );
     }
 
@@ -17,14 +41,21 @@ const TablaUsuarios = ({ usuarios, cargando }) => {
             <Table striped bordered hover responsive>
                 <thead>
                     <tr>
-                        <th>ID Usuario</th>
-                        <th>Nombre de Usuario</th>
-                        <th>Contraseña</th>
-                        <th>Acciones</th>
+                        <BotonOrden campo="id_usuario" orden={orden} manejarOrden={manejarOrden}>
+                            ID
+                        </BotonOrden>
+
+                        <BotonOrden campo="usuario" orden={orden} manejarOrden={manejarOrden}>
+                            Nombre usuario
+                        </BotonOrden>
+
+                        <BotonOrden campo="contraseña" orden={orden} manejarOrden={manejarOrden}>
+                            Contraseña del usuario
+                        </BotonOrden>
                     </tr>
                 </thead>
                 <tbody>
-                    {usuarios.map((usuario) => {
+                    {usuariosOrdenados.map((usuario) => {
                         return (
                             <tr key={usuario.id_usuario}>
                                 <td>{usuario.id_usuario}</td>
