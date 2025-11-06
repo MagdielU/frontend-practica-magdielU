@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Table, Spinner } from "react-bootstrap";
+import { Table, Spinner, Button } from "react-bootstrap";
 import BotonOrden from "../ordenamiento/BotonOrden";
 
-const TablaUsuarios = ({ usuarios, cargando }) => {
-
+const TablaUsuarios = ({ usuarios, cargando, abrirModalEdicion, abrirModalEliminacion }) => {
     const [orden, setOrden] = useState({ campo: "id_usuario", direccion: "asc" });
 
     const manejarOrden = (campo) => {
@@ -27,48 +26,47 @@ const TablaUsuarios = ({ usuarios, cargando }) => {
     });
 
     if (cargando) {
-        return (
-            <>
-                <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Cargando...</span>
-                </Spinner>
-            </>
-        );
+        return <Spinner animation="border" role="status" />;
     }
 
     return (
-        <>
-            <Table striped bordered hover responsive>
-                <thead>
-                    <tr>
-                        <BotonOrden campo="id_usuario" orden={orden} manejarOrden={manejarOrden}>
-                            ID
-                        </BotonOrden>
-
-                        <BotonOrden campo="usuario" orden={orden} manejarOrden={manejarOrden}>
-                            Nombre usuario
-                        </BotonOrden>
-
-                        <BotonOrden campo="contraseña" orden={orden} manejarOrden={manejarOrden}>
-                            Contraseña del usuario
-                        </BotonOrden>
+        <Table striped bordered hover responsive>
+            <thead>
+                <tr>
+                    <BotonOrden campo="id_usuario" orden={orden} manejarOrden={manejarOrden}>ID</BotonOrden>
+                    <BotonOrden campo="usuario" orden={orden} manejarOrden={manejarOrden}>Usuario</BotonOrden>
+                    <BotonOrden campo="contraseña" orden={orden} manejarOrden={manejarOrden}>Contraseña</BotonOrden>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {usuariosOrdenados.map((usuario) => (
+                    <tr key={usuario.id_usuario}>
+                        <td>{usuario.id_usuario}</td>
+                        <td>{usuario.usuario}</td>
+                        <td>{usuario.contraseña}</td>
+                        <td className="text-center">
+                            <Button
+                                variant="warning"
+                                size="sm"
+                                className="me-2"
+                                onClick={() => abrirModalEdicion(usuario)}
+                            >
+                                <i className="bi bi-pencil"></i>
+                            </Button>
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => abrirModalEliminacion(usuario)}
+                            >
+                                <i className="bi bi-trash"></i>
+                            </Button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {usuariosOrdenados.map((usuario) => {
-                        return (
-                            <tr key={usuario.id_usuario}>
-                                <td>{usuario.id_usuario}</td>
-                                <td>{usuario.usuario}</td>
-                                <td>{usuario.contraseña}</td>
-                                <td>Acción</td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </Table>
-        </>
-    )
-}
+                ))}
+            </tbody>
+        </Table>
+    );
+};
 
 export default TablaUsuarios;

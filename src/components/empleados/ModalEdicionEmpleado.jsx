@@ -1,16 +1,22 @@
 import { Modal, Form, Button, Row, Col } from "react-bootstrap";
 
-const ModalRegistroEmpleado = ({
-  mostrarModal,
-  setMostrarModal,
-  nuevoEmpleado,
-  manejarCambioInput,
-  agregarEmpleado,
+const ModalEdicionEmpleado = ({
+  mostrar,
+  setMostrar,
+  empleadoEditado,
+  setEmpleadoEditado,
+  guardarEdicion,
 }) => {
+
+  const manejarCambio = (e) => {
+    const { name, value } = e.target;
+    setEmpleadoEditado((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <Modal backdrop="static" show={mostrarModal} onHide={() => setMostrarModal(false)} centered>
+    <Modal backdrop="static" show={mostrar} onHide={() => setMostrar(false)} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Agregar Nuevo Empleado</Modal.Title>
+        <Modal.Title>Editar Empleado</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -21,11 +27,10 @@ const ModalRegistroEmpleado = ({
                 <Form.Control
                   type="text"
                   name="primer_nombre"
-                  value={nuevoEmpleado.primer_nombre}
-                  onChange={manejarCambioInput}
+                  value={empleadoEditado?.primer_nombre || ''}
+                  onChange={manejarCambio}
                   maxLength={20}
                   required
-                  autoFocus
                 />
               </Form.Group>
             </Col>
@@ -35,8 +40,8 @@ const ModalRegistroEmpleado = ({
                 <Form.Control
                   type="text"
                   name="segundo_nombre"
-                  value={nuevoEmpleado.segundo_nombre}
-                  onChange={manejarCambioInput}
+                  value={empleadoEditado?.segundo_nombre || ''}
+                  onChange={manejarCambio}
                   maxLength={20}
                 />
               </Form.Group>
@@ -50,8 +55,8 @@ const ModalRegistroEmpleado = ({
                 <Form.Control
                   type="text"
                   name="primer_apellido"
-                  value={nuevoEmpleado.primer_apellido}
-                  onChange={manejarCambioInput}
+                  value={empleadoEditado?.primer_apellido || ''}
+                  onChange={manejarCambio}
                   maxLength={20}
                   required
                 />
@@ -63,8 +68,8 @@ const ModalRegistroEmpleado = ({
                 <Form.Control
                   type="text"
                   name="segundo_apellido"
-                  value={nuevoEmpleado.segundo_apellido}
-                  onChange={manejarCambioInput}
+                  value={empleadoEditado?.segundo_apellido || ''}
+                  onChange={manejarCambio}
                   maxLength={20}
                 />
               </Form.Group>
@@ -78,10 +83,9 @@ const ModalRegistroEmpleado = ({
                 <Form.Control
                   type="text"
                   name="celular"
-                  value={nuevoEmpleado.celular}
-                  onChange={manejarCambioInput}
+                  value={empleadoEditado?.celular || ''}
+                  onChange={manejarCambio}
                   maxLength={8}
-                  placeholder="88888888"
                 />
               </Form.Group>
             </Col>
@@ -91,10 +95,9 @@ const ModalRegistroEmpleado = ({
                 <Form.Control
                   type="text"
                   name="cargo"
-                  value={nuevoEmpleado.cargo}
-                  onChange={manejarCambioInput}
+                  value={empleadoEditado?.cargo || ''}
+                  onChange={manejarCambio}
                   maxLength={20}
-                  placeholder="Ej: Vendedor"
                 />
               </Form.Group>
             </Col>
@@ -105,30 +108,36 @@ const ModalRegistroEmpleado = ({
             <Form.Control
               type="date"
               name="fecha_contratacion"
-              value={nuevoEmpleado.fecha_contratacion}
-              onChange={manejarCambioInput}
+              value={
+                empleadoEditado?.fecha_contratacion
+                  ? new Date(empleadoEditado.fecha_contratacion).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={manejarCambio}
               required
             />
-            <Form.Text className="text-muted">
-              Por defecto es hoy, pero puedes cambiarla.
-            </Form.Text>
           </Form.Group>
+
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={() => setMostrarModal(false)}>
+        <Button variant="secondary" onClick={() => setMostrar(false)}>
           Cancelar
         </Button>
         <Button
           variant="primary"
-          onClick={agregarEmpleado}
-          disabled={!nuevoEmpleado.primer_nombre.trim() || !nuevoEmpleado.primer_apellido.trim() || !nuevoEmpleado.fecha_contratacion}
+          onClick={guardarEdicion}
+          disabled={
+            !empleadoEditado?.primer_nombre?.trim() ||
+            !empleadoEditado?.primer_apellido?.trim() ||
+            !empleadoEditado?.fecha_contratacion
+          }
         >
-          Guardar Empleado
+          Guardar Cambios
         </Button>
       </Modal.Footer>
     </Modal>
   );
 };
 
-export default ModalRegistroEmpleado;
+export default ModalEdicionEmpleado;
