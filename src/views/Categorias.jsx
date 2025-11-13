@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import TablaCategorias from '../components/categorias/TablaCategorias';
 import CuadroBusquedas from '../components/busquedas/CuadroBusquedas';
+import TablaCategorias from '../components/categorias/TablaCategorias';
 import ModalRegistroCategoria from '../components/categorias/ModalRegistroCategoria';
 import ModalEdicionCategoria from '../components/categorias/ModalEdicionCategoria';
 import ModalEliminacionCategoria from '../components/categorias/ModalEliminacionCategoria';
-
 
 const Categorias = () => {
 

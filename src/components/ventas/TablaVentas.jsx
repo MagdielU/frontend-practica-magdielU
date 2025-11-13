@@ -1,47 +1,64 @@
-import { Table, Spinner } from "react-bootstrap";
+import { Table, Button, Pagination } from 'react-bootstrap';
 
-const TablaVentas = ({ ventas, cargando }) => {
+const TablaVentas = ({
+  ventas, cargando, obtenerDetalles, abrirModalEdicion,
+  abrirModalEliminacion, totalElementos, elementosPorPagina,
+  paginaActual, establecerPaginaActual
+}) => {
+  if (cargando) return <div className="text-center">Cargando ventas...</div>;
 
-    if (cargando){
-        return(
-        <>
-        <Spinner animation="border" role="status">
-            <span className="visually-hidden">Cargando...</span>
-        </Spinner>
-        </>
-        );
-    }
+  const totalPaginas = Math.ceil(totalElementos / elementosPorPagina);
 
-    return (
-        <>
-            <Table striped bordered hover responsive>
-                <thead>
-                    <tr>
-                        <th>ID Venta</th>
-                        <th>ID Cliente</th>
-                        <th>ID Empleado</th>
-                        <th>Fecha Venta</th>
-                        <th>Total Venta</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {ventas.map((venta) => {
-                        return (
-                            <tr key={venta.id_venta}>
-                                <td>{venta.id_venta}</td>
-                                <td>{venta.id_cliente}</td>
-                                <td>{venta.id_empleado}</td>
-                                <td>{venta.fecha_venta}</td>
-                                <td>{venta.total_venta}</td>
-                                <td>Acción</td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </Table>
-        </>
-    )
-}
+  return (
+    <>
+      <Table striped bordered hover responsive className="mt-3">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Empleado</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ventas.map((v) => (
+            <tr key={v.id_venta}>
+              <td>{v.id_venta}</td>
+              <td>{new Date(v.fecha_venta).toLocaleString()}</td>
+              <td>{v.nombre_cliente}</td>
+              <td>{v.nombre_empleado}</td>
+              <td>C$ {parseFloat(v.total_venta).toFixed(2)}</td>
+              <td>
+                <Button size="sm" variant="outline-info" onClick={() => obtenerDetalles(v.id_venta)}>
+                  Detalles
+                </Button>{' '}
+                <Button size="sm" variant="outline-warning" onClick={() => abrirModalEdicion(v)}>
+                  Editar
+                </Button>{' '}
+                <Button size="sm" variant="outline-danger" onClick={() => abrirModalEliminacion(v)}>
+                  Eliminar
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <Pagination>
+        {[...Array(totalPaginas)].map((_, i) => (
+          <Pagination.Item
+            key={i + 1}
+            active={i + 1 === paginaActual}
+            onClick={() => establecerPaginaActual(i + 1)}
+          >
+            {i + 1}
+          </Pagination.Item>
+        ))}
+      </Pagination>
+    </>
+  );
+};
 
 export default TablaVentas;
