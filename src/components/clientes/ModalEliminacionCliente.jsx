@@ -1,22 +1,24 @@
 import { Modal, Button } from "react-bootstrap";
 
 const ModalEliminacionCliente = ({ mostrar, setMostrar, clienteEliminar, confirmarEliminar }) => {
+  // Si no hay cliente seleccionado, no renderizar
   if (!clienteEliminar) return null;
 
   const manejarEliminar = () => {
-    confirmarEliminar(clienteEliminar.id); // Usamos id real de la tabla
+    // Usar id_cliente que es el que está en la base de datos
+    confirmarEliminar(clienteEliminar.id_cliente);
     setMostrar(false);
   };
 
   return (
-    <Modal show={mostrar} onHide={() => setMostrar(false)} centered>
+    <Modal show={mostrar} onHide={() => setMostrar(false)} centered backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>Eliminar Cliente</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <p>
           ¿Estás seguro de que deseas eliminar al cliente{" "}
-          <strong>{clienteEliminar.nombre}</strong>?
+          <strong>{clienteEliminar.primer_nombre} {clienteEliminar.primer_apellido}</strong>?
         </p>
       </Modal.Body>
       <Modal.Footer>

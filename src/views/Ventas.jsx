@@ -1,377 +1,158 @@
-import { useState, useEffect } from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import TablaVentas from '../components/ventas/TablaVentas';
-import CuadroBusquedas from '../components/busquedas/CuadroBusquedas';
-import ModalRegistroVenta from '../components/ventas/ModalRegistroVenta';
-import ModalEdicionVenta from '../components/ventas/ModalEdicionVenta';
-import ModalEliminacionVenta from '../components/ventas/ModalEliminacionVenta';
-import ModalDetallesVenta from '../components/detalles_ventas/ModalDetallesVenta';
+// src/pages/Ventas.jsx
+import { useState, useEffect } from "react";
+import TablaVentas from "../components/ventas/TablaVentas";
+import ModalRegistroVenta from "../components/ventas/ModalRegistroVenta";
+import ModalEdicionVenta from "../components/ventas/ModalEdicionVenta";
+import ModalEliminacionVenta from "../components/ventas/ModalEliminacionVenta";
+import { Button } from "react-bootstrap";
 
 const Ventas = () => {
-    const [ventas, setVentas] = useState([]);
-    const [ventasFiltradas, setVentasFiltradas] = useState([]);
-    const [cargando, setCargando] = useState(true);
-    const [textoBusqueda, setTextoBusqueda] = useState("");
+  const [ventas, setVentas] = useState([]);
+  const [detalles, setDetalles] = useState([]);
+  const [nuevaVenta, setNuevaVenta] = useState({ id_cliente: "", id_empleado: "", fecha_venta: "" });
+  const [ventaEnEdicion, setVentaEnEdicion] = useState(null);
+  const [ventaAEliminar, setVentaAEliminar] = useState(null);
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  const [mostrarEdicion, setMostrarEdicion] = useState(false);
+  const [mostrarEliminacion, setMostrarEliminacion] = useState(false);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const elementosPorPagina = 5;
 
-    const [mostrarModalRegistro, setMostrarModalRegistro] = useState(false);
-    const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
-    const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
-    const [mostrarModalDetalles, setMostrarModalDetalles] = useState(false);
+  // Simulando datos de clientes, empleados y productos
+  const clientes = [
+    { id_cliente: 1, primer_nombre: "Juan", primer_apellido: "Pérez" },
+    { id_cliente: 2, primer_nombre: "Ana", primer_apellido: "García" }
+  ];
+  const empleados = [
+    { id_empleado: 1, primer_nombre: "Carlos", primer_apellido: "López" },
+    { id_empleado: 2, primer_nombre: "María", primer_apellido: "Santos" }
+  ];
+  const productos = [
+    { id_producto: 1, nombre_producto: "Teclado", precio_unitario: 500, stock: 10 },
+    { id_producto: 2, nombre_producto: "Mouse", precio_unitario: 300, stock: 15 }
+  ];
 
-    const [ventaAEditar, setVentaAEditar] = useState(null);
-    const [ventaAEliminar, setVentaAEliminar] = useState(null);
-    const [detallesVenta, setDetallesVenta] = useState([]);
+  const hoy = new Date().toISOString().split("T")[0];
 
-    const [clientes, setClientes] = useState([]);
-    const [empleados, setEmpleados] = useState([]);
-    const [productos, setProductos] = useState([]);
+  // Simulación de carga de ventas
+  useEffect(() => {
+    const ventasSimuladas = [
+      { id_venta: 1, fecha_venta: new Date().toISOString(), nombre_cliente: "Juan Pérez", nombre_empleado: "Carlos López", total_venta: 1000 },
+      { id_venta: 2, fecha_venta: new Date().toISOString(), nombre_cliente: "Ana García", nombre_empleado: "María Santos", total_venta: 800 }
+    ];
+    setVentas(ventasSimuladas);
+  }, []);
 
-    const [paginaActual, setPaginaActual] = useState(1);
-    const elementosPorPagina = 5;
-    const hoy = new Date().toISOString().split('T')[0];
+  // === FUNCIONES PARA LA TABLA ===
+  const obtenerDetalles = (id_venta) => {
+    const venta = ventas.find(v => v.id_venta === id_venta);
+    if (!venta) return;
+    alert(`Detalles de la venta #${id_venta}\nCliente: ${venta.nombre_cliente}\nTotal: C$ ${venta.total_venta}`);
+  };
 
-    const [nuevaVenta, setNuevaVenta] = useState({
-        id_cliente: '',
-        id_empleado: '',
-        fecha_venta: hoy,
-        total_venta: 0
-    });
+  const abrirModalEdicion = (venta) => {
+    setVentaEnEdicion({ ...venta });
+    setDetalles([]); // Inicialmente vacíos
+    setMostrarEdicion(true);
+  };
 
-    const [ventaEnEdicion, setVentaEnEdicion] = useState(null);
-    const [detallesNuevos, setDetallesNuevos] = useState([]);
+  const abrirModalEliminacion = (venta) => {
+    setVentaAEliminar(venta);
+    setMostrarEliminacion(true);
+  };
 
-    const ventasPaginadas = ventasFiltradas.slice(
-        (paginaActual - 1) * elementosPorPagina,
-        paginaActual * elementosPorPagina
-    );
+  const agregarVenta = () => {
+    const id_nueva = ventas.length + 1;
+    const total = detalles.reduce((s, d) => s + d.cantidad * d.precio_unitario, 0);
+    const cliente = clientes.find(c => c.id_cliente === nuevaVenta.id_cliente);
+    const empleado = empleados.find(e => e.id_empleado === nuevaVenta.id_empleado);
 
-    // === OBTENER NOMBRES ===
-    const obtenerNombreCliente = async (idCliente) => {
-        if (!idCliente) return '—';
-        try {
-            const resp = await fetch(`http://localhost:3000/api/clientes/${idCliente}`);
-            if (!resp.ok) return '—';
-            const data = await resp.json();
-            return `${data.primer_nombre} ${data.primer_apellido}`;
-        } catch (error) {
-            console.error(error);
-            return '—';
-        }
+    const nueva = {
+      id_venta: id_nueva,
+      fecha_venta: nuevaVenta.fecha_venta || hoy,
+      nombre_cliente: cliente ? `${cliente.primer_nombre} ${cliente.primer_apellido}` : "",
+      nombre_empleado: empleado ? `${empleado.primer_nombre} ${empleado.primer_apellido}` : "",
+      total_venta: total
     };
 
-    const obtenerNombreEmpleado = async (idEmpleado) => {
-        if (!idEmpleado) return '—';
-        try {
-            const resp = await fetch(`http://localhost:3000/api/empleados/${idEmpleado}`);
-            if (!resp.ok) return '—';
-            const data = await resp.json();
-            return `${data.primer_nombre} ${data.primer_apellido}`;
-        } catch (error) {
-            console.error(error);
-            return '—';
-        }
-    };
+    setVentas(prev => [...prev, nueva]);
+    setDetalles([]);
+    setNuevaVenta({ id_cliente: "", id_empleado: "", fecha_venta: hoy });
+    setMostrarRegistro(false);
+  };
 
-    const obtenerNombreProducto = async (idProducto) => {
-        if (!idProducto) return '—';
-        try {
-            const resp = await fetch(`http://localhost:3000/api/productos/${idProducto}`);
-            if (!resp.ok) return '—';
-            const data = await resp.json();
-            return data.nombre_producto || '—';
-        } catch (error) {
-            console.error(error);
-            return '—';
-        }
-    };
+  const actualizarVenta = () => {
+    if (!ventaEnEdicion) return;
+    const total = detalles.reduce((s, d) => s + d.cantidad * d.precio_unitario, 0);
+    setVentas(prev => prev.map(v => v.id_venta === ventaEnEdicion.id_venta ? { ...ventaEnEdicion, total_venta: total } : v));
+    setDetalles([]);
+    setVentaEnEdicion(null);
+    setMostrarEdicion(false);
+  };
 
-    // === OBTENER VENTAS ===
-    const obtenerVentas = async () => {
-        try {
-            const resp = await fetch('http://localhost:3000/api/ventas');
-            if (!resp.ok) throw new Error('Error al cargar ventas');
-            const ventasRaw = await resp.json();
+  const eliminarVenta = () => {
+    if (!ventaAEliminar) return;
+    setVentas(prev => prev.filter(v => v.id_venta !== ventaAEliminar.id_venta));
+    setVentaAEliminar(null);
+    setMostrarEliminacion(false);
+  };
 
-            const ventasConNombres = await Promise.all(
-                ventasRaw.map(async (v) => ({
-                    ...v,
-                    nombre_cliente: await obtenerNombreCliente(v.id_cliente),
-                    nombre_empleado: await obtenerNombreEmpleado(v.id_empleado)
-                }))
-            );
+  const totalElementos = ventas.length;
 
-            setVentas(ventasConNombres);
-            setVentasFiltradas(ventasConNombres);
-            setCargando(false);
-        } catch (error) {
-            console.error(error);
-            alert("Error al cargar ventas.");
-            setCargando(false);
-        }
-    };
+  return (
+    <div className="container mt-4">
+      <h2>Gestión de Ventas</h2>
+      <Button className="mb-3" onClick={() => setMostrarRegistro(true)}>Nueva Venta</Button>
 
-    // === OBTENER DETALLES DE VENTA ===
-    const obtenerDetallesVenta = async (id_venta) => {
-        try {
-            const resp = await fetch('http://localhost:3000/api/detalles_ventas');
-            if (!resp.ok) throw new Error('Error al cargar detalles');
-            const todos = await resp.json();
-            const filtrados = todos.filter(d => d.id_venta === parseInt(id_venta));
+      <TablaVentas
+        ventas={ventas}
+        cargando={false}
+        obtenerDetalles={obtenerDetalles}
+        abrirModalEdicion={abrirModalEdicion}
+        abrirModalEliminacion={abrirModalEliminacion}
+        totalElementos={totalElementos}
+        elementosPorPagina={elementosPorPagina}
+        paginaActual={paginaActual}
+        establecerPaginaActual={setPaginaActual}
+      />
 
-            const detalles = await Promise.all(
-                filtrados.map(async (d) => ({
-                    ...d,
-                    nombre_producto: await obtenerNombreProducto(d.id_producto)
-                }))
-            );
+      {/* Modales */}
+      <ModalRegistroVenta
+        mostrar={mostrarRegistro}
+        setMostrar={setMostrarRegistro}
+        nuevaVenta={nuevaVenta}
+        setNuevaVenta={setNuevaVenta}
+        detalles={detalles}
+        setDetalles={setDetalles}
+        clientes={clientes}
+        empleados={empleados}
+        productos={productos}
+        agregarVenta={agregarVenta}
+        hoy={hoy}
+      />
 
-            setDetallesVenta(detalles);
-            setMostrarModalDetalles(true);
-        } catch (error) {
-            console.error(error);
-            alert("No se pudieron cargar los detalles.");
-        }
-    };
+      <ModalEdicionVenta
+        mostrar={mostrarEdicion}
+        setMostrar={setMostrarEdicion}
+        venta={ventaEnEdicion}
+        ventaEnEdicion={ventaEnEdicion}
+        setVentaEnEdicion={setVentaEnEdicion}
+        detalles={detalles}
+        setDetalles={setDetalles}
+        clientes={clientes}
+        empleados={empleados}
+        productos={productos}
+        actualizarVenta={actualizarVenta}
+      />
 
-    // === CARGAR CATÁLOGOS ===
-    const obtenerClientes = async () => {
-        try {
-            const resp = await fetch('http://localhost:3000/api/clientes');
-            const datos = await resp.json();
-            setClientes(datos);
-        } catch (error) { console.error(error); }
-    };
-
-    const obtenerEmpleados = async () => {
-        try {
-            const resp = await fetch('http://localhost:3000/api/empleados');
-            const datos = await resp.json();
-            setEmpleados(datos);
-        } catch (error) { console.error(error); }
-    };
-
-    const obtenerProductos = async () => {
-        try {
-            const resp = await fetch('http://localhost:3000/api/productos');
-            const datos = await resp.json();
-            setProductos(datos);
-        } catch (error) { console.error(error); }
-    };
-
-    // === BÚSQUEDA ===
-    const manejarCambioBusqueda = (e) => {
-        const texto = e.target.value.toLowerCase();
-        setTextoBusqueda(texto);
-        const filtrados = ventas.filter(v =>
-            v.id_venta.toString().includes(texto) ||
-            (v.nombre_cliente && v.nombre_cliente.toLowerCase().includes(texto)) ||
-            (v.nombre_empleado && v.nombre_empleado.toLowerCase().includes(texto))
-        );
-        setVentasFiltradas(filtrados);
-        setPaginaActual(1);
-    };
-
-    // === REGISTRO ===
-    const agregarVenta = async () => {
-        if (!nuevaVenta.id_cliente || !nuevaVenta.id_empleado || detallesNuevos.length === 0) {
-            alert("Completa cliente, empleado y al menos un detalle.");
-            return;
-        }
-
-        const total = detallesNuevos.reduce((sum, d) => sum + (d.cantidad * d.precio_unitario), 0);
-
-        try {
-            const ventaResp = await fetch('http://localhost:3000/api/registrarventa', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...nuevaVenta, total_venta: total })
-            });
-
-            if (!ventaResp.ok) throw new Error('Error al crear venta');
-            const { id_venta } = await ventaResp.json();
-
-            for (const d of detallesNuevos) {
-                await fetch('http://localhost:3000/api/registrardetalleventa', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...d, id_venta })
-                });
-            }
-
-            await obtenerVentas();
-            cerrarModalRegistro();
-        } catch (error) {
-            console.error(error);
-            alert("Error al registrar venta.");
-        }
-    };
-
-    // === EDICIÓN ===
-    const abrirModalEdicion = async (venta) => {
-        setVentaAEditar(venta);
-        setVentaEnEdicion({
-            id_cliente: venta.id_cliente,
-            id_empleado: venta.id_empleado,
-            fecha_venta: new Date(venta.fecha_venta).toISOString().split("T")[0]
-        });
-
-        const resp = await fetch('http://localhost:3000/api/detalles_ventas');
-        const todos = await resp.json();
-        const detallesRaw = todos.filter(d => d.id_venta === venta.id_venta);
-
-        const detalles = await Promise.all(
-            detallesRaw.map(async (d) => ({
-                id_producto: d.id_producto,
-                nombre_producto: await obtenerNombreProducto(d.id_producto),
-                cantidad: d.cantidad,
-                precio_unitario: d.precio_unitario
-            }))
-        );
-
-        setDetallesNuevos(detalles);
-        setMostrarModalEdicion(true);
-    };
-
-    const actualizarVenta = async () => {
-        const total = detallesNuevos.reduce((sum, d) => sum + (d.cantidad * d.precio_unitario), 0);
-        try {
-            await fetch(`http://localhost:3000/api/actualizarventa/${ventaAEditar.id_venta}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...ventaEnEdicion, total_venta: total })
-            });
-
-            const resp = await fetch('http://localhost:3000/api/detalles_ventas');
-            const todos = await resp.json();
-            const actuales = todos.filter(d => d.id_venta === ventaAEditar.id_venta);
-            for (const d of actuales) {
-                await fetch(`http://localhost:3000/api/eliminardetalleventa/${d.id_detalle_venta}`, { method: 'DELETE' });
-            }
-
-            for (const d of detallesNuevos) {
-                await fetch('http://localhost:3000/api/registrardetalleventa', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...d, id_venta: ventaAEditar.id_venta })
-                });
-            }
-
-            await obtenerVentas();
-            cerrarModalEdicion();
-        } catch (error) {
-            console.error(error);
-            alert("Error al actualizar.");
-        }
-    };
-
-    // === ELIMINACIÓN ===
-    const abrirModalEliminacion = (venta) => {
-        setVentaAEliminar(venta);
-        setMostrarModalEliminar(true);
-    };
-
-    const eliminarVenta = async () => {
-        try {
-            await fetch(`http://localhost:3000/api/eliminarventa/${ventaAEliminar.id_venta}`, { method: 'DELETE' });
-            await obtenerVentas();
-            setMostrarModalEliminar(false);
-        } catch (error) {
-            alert("No se pudo eliminar.");
-        }
-    };
-
-    // === LIMPIEZA DE MODALES ===
-    const cerrarModalRegistro = () => {
-        setMostrarModalRegistro(false);
-        setNuevaVenta({ id_cliente: '', id_empleado: '', fecha_venta: hoy, total_venta: 0 });
-        setDetallesNuevos([]);
-    };
-
-    const cerrarModalEdicion = () => {
-        setMostrarModalEdicion(false);
-        setVentaAEditar(null);
-        setVentaEnEdicion(null);
-        setDetallesNuevos([]);
-    };
-
-    useEffect(() => {
-        obtenerVentas();
-        obtenerClientes();
-        obtenerEmpleados();
-        obtenerProductos();
-    }, []);
-
-    return (
-        <Container className="mt-4">
-            <h4>Ventas</h4>
-            <Row>
-                <Col lg={5} md={6} sm={8} xs={12}>
-                    <CuadroBusquedas
-                        textoBusqueda={textoBusqueda}
-                        manejarCambioBusqueda={manejarCambioBusqueda}
-                    />
-                </Col>
-                <Col className="text-end">
-                    <Button className="color-boton-registro" onClick={() => setMostrarModalRegistro(true)}>
-                        + Nueva Venta
-                    </Button>
-                </Col>
-            </Row>
-
-            <TablaVentas
-                ventas={ventasPaginadas}
-                cargando={cargando}
-                obtenerDetalles={obtenerDetallesVenta}
-                abrirModalEdicion={abrirModalEdicion}
-                abrirModalEliminacion={abrirModalEliminacion}
-                totalElementos={ventasFiltradas.length}
-                elementosPorPagina={elementosPorPagina}
-                paginaActual={paginaActual}
-                establecerPaginaActual={setPaginaActual}
-            />
-
-            <ModalRegistroVenta
-                mostrar={mostrarModalRegistro}
-                setMostrar={cerrarModalRegistro}
-                nuevaVenta={nuevaVenta}
-                setNuevaVenta={setNuevaVenta}
-                detalles={detallesNuevos}
-                setDetalles={setDetallesNuevos}
-                clientes={clientes}
-                empleados={empleados}
-                productos={productos}
-                agregarVenta={agregarVenta}
-                hoy={hoy}
-            />
-
-            <ModalEdicionVenta
-                mostrar={mostrarModalEdicion}
-                setMostrar={cerrarModalEdicion}
-                venta={ventaAEditar}
-                ventaEnEdicion={ventaEnEdicion}
-                setVentaEnEdicion={setVentaEnEdicion}
-                detalles={detallesNuevos}
-                setDetalles={setDetallesNuevos}
-                clientes={clientes}
-                empleados={empleados}
-                productos={productos}
-                actualizarVenta={actualizarVenta}
-            />
-
-            <ModalEliminacionVenta
-                mostrar={mostrarModalEliminar}
-                setMostrar={setMostrarModalEliminar}
-                venta={ventaAEliminar}
-                confirmarEliminacion={eliminarVenta}
-            />
-
-            <ModalDetallesVenta
-                mostrarModal={mostrarModalDetalles}
-                setMostrarModal={() => setMostrarModalDetalles(false)}
-                detalles={detallesVenta}
-            />
-        </Container>
-    );
+      <ModalEliminacionVenta
+        mostrar={mostrarEliminacion}
+        setMostrar={setMostrarEliminacion}
+        venta={ventaAEliminar}
+        confirmarEliminacion={eliminarVenta}
+      />
+    </div>
+  );
 };
 
 export default Ventas;

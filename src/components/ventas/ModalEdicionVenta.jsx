@@ -5,7 +5,6 @@ import AsyncSelect from 'react-select/async';
 const ModalEdicionVenta = ({
   mostrar,
   setMostrar,
-  venta,
   ventaEnEdicion,
   setVentaEnEdicion,
   detalles,
@@ -22,36 +21,25 @@ const ModalEdicionVenta = ({
 
   const hoy = new Date().toISOString().split('T')[0];
 
-  // === CARGAR CLIENTE Y EMPLEADO AL ABRIR ===
+  // Cargar cliente y empleado al abrir modal
   useEffect(() => {
-    if (venta && clientes.length > 0 && empleados.length > 0 && ventaEnEdicion) {
+    if (ventaEnEdicion) {
       const cliente = clientes.find(c => c.id_cliente === ventaEnEdicion.id_cliente);
       const empleado = empleados.find(e => e.id_empleado === ventaEnEdicion.id_empleado);
 
-      setClienteSel(cliente ? {
-        value: cliente.id_cliente,
-        label: `${cliente.primer_nombre} ${cliente.primer_apellido}`
-      } : null);
-
-      setEmpleadoSel(empleado ? {
-        value: empleado.id_empleado,
-        label: `${empleado.primer_nombre} ${empleado.primer_apellido}`
-      } : null);
+      setClienteSel(cliente ? { value: cliente.id_cliente, label: `${cliente.primer_nombre} ${cliente.primer_apellido}` } : null);
+      setEmpleadoSel(empleado ? { value: empleado.id_empleado, label: `${empleado.primer_nombre} ${empleado.primer_apellido}` } : null);
     }
-  }, [venta, clientes, empleados, ventaEnEdicion]);
+  }, [ventaEnEdicion, clientes, empleados]);
 
-  // === CÁLCULO DEL TOTAL ===
+  // Total de la venta
   const total = detalles.reduce((s, d) => s + (d.cantidad * d.precio_unitario), 0);
 
-  // === CARGAR OPCIONES PARA ASYNCSELECT ===
   const cargarOpciones = (lista, campo) => (input, callback) => {
     const filtrados = lista.filter(item => {
-      const valor = typeof campo === 'string'
-        ? item[campo]
-        : `${item.primer_nombre} ${item.primer_apellido}`;
-      return valor?.toLowerCase().includes(input.toLowerCase());
+      const valor = campo === 'nombre_producto' ? item.nombre_producto : `${item.primer_nombre} ${item.primer_apellido}`;
+      return valor.toLowerCase().includes(input.toLowerCase());
     });
-
     callback(filtrados.map(item => ({
       value: item.id_cliente || item.id_empleado || item.id_producto,
       label: campo === 'nombre_producto' ? item.nombre_producto : `${item.primer_nombre} ${item.primer_apellido}`,
@@ -60,23 +48,22 @@ const ModalEdicionVenta = ({
     })));
   };
 
-  // === MANEJADORES ===
   const manejarCliente = (sel) => {
     setClienteSel(sel);
-    setVentaEnEdicion(prev => ({ ...prev, id_cliente: sel ? sel.value : '' }));
+    setVentaEnEdicion(prev => prev ? { ...prev, id_cliente: sel?.value || '' } : null);
   };
 
   const manejarEmpleado = (sel) => {
     setEmpleadoSel(sel);
-    setVentaEnEdicion(prev => ({ ...prev, id_empleado: sel ? sel.value : '' }));
+    setVentaEnEdicion(prev => prev ? { ...prev, id_empleado: sel?.value || '' } : null);
   };
 
   const manejarProducto = (sel) => {
     setProductoSel(sel);
     setNuevoDetalle(prev => ({
       ...prev,
-      id_producto: sel ? sel.value : '',
-      precio_unitario: sel ? sel.precio : ''
+      id_producto: sel?.value || '',
+      precio_unitario: sel?.precio || ''
     }));
   };
 
@@ -109,10 +96,12 @@ const ModalEdicionVenta = ({
     setDetalles(prev => prev.filter((_, i) => i !== index));
   };
 
+  if (!ventaEnEdicion) return null; // No renderizar si no hay venta seleccionada
+
   return (
-    <Modal show={mostrar} onHide={setMostrar} size="xl" fullscreen="lg-down">
+    <Modal show={mostrar} onHide={() => setMostrar(false)} size="xl" fullscreen="lg-down">
       <Modal.Header closeButton>
-        <Modal.Title>Editar Venta #{venta?.id_venta}</Modal.Title>
+        <Modal.Title>Editar Venta #{ventaEnEdicion?.id_venta}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -121,8 +110,7 @@ const ModalEdicionVenta = ({
               <Form.Group>
                 <Form.Label>Cliente</Form.Label>
                 <AsyncSelect
-                  cacheOptions
-                  defaultOptions
+                  cacheOptions defaultOptions
                   loadOptions={cargarOpciones(clientes, 'primer_nombre')}
                   onChange={manejarCliente}
                   value={clienteSel}
@@ -135,8 +123,7 @@ const ModalEdicionVenta = ({
               <Form.Group>
                 <Form.Label>Empleado</Form.Label>
                 <AsyncSelect
-                  cacheOptions
-                  defaultOptions
+                  cacheOptions defaultOptions
                   loadOptions={cargarOpciones(empleados, 'primer_nombre')}
                   onChange={manejarEmpleado}
                   value={empleadoSel}
@@ -162,8 +149,7 @@ const ModalEdicionVenta = ({
           <Row>
             <Col md={5}>
               <AsyncSelect
-                cacheOptions
-                defaultOptions
+                cacheOptions defaultOptions
                 loadOptions={cargarOpciones(productos, 'nombre_producto')}
                 onChange={manejarProducto}
                 value={productoSel}
@@ -206,9 +192,7 @@ const ModalEdicionVenta = ({
                     <td>C$ {d.precio_unitario.toFixed(2)}</td>
                     <td>C$ {(d.cantidad * d.precio_unitario).toFixed(2)}</td>
                     <td>
-                      <Button size="sm" variant="danger" onClick={() => eliminarDetalle(i)}>
-                        X
-                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => eliminarDetalle(i)}>X</Button>
                     </td>
                   </tr>
                 ))}
@@ -224,7 +208,7 @@ const ModalEdicionVenta = ({
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={setMostrar}>Cancelar</Button>
+        <Button variant="secondary" onClick={() => setMostrar(false)}>Cancelar</Button>
         <Button variant="primary" onClick={actualizarVenta}>Actualizar Venta</Button>
       </Modal.Footer>
     </Modal>

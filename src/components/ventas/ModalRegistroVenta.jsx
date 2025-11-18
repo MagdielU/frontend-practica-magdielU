@@ -15,33 +15,37 @@ const ModalRegistroVenta = ({
   const total = detalles.reduce((s, d) => s + (d.cantidad * d.precio_unitario), 0);
 
   const cargarOpciones = (lista, campo) => (input, callback) => {
-    const filtrados = lista.filter(item =>
-      item[campo].toLowerCase().includes(input.toLowerCase())
-    );
+    const arr = Array.isArray(lista) ? lista : [];
+    const filtrados = arr.filter(item => {
+      if (campo === 'nombre_producto') return item.nombre_producto.toLowerCase().includes(input.toLowerCase());
+      return `${item.primer_nombre} ${item.primer_apellido}`.toLowerCase().includes(input.toLowerCase());
+    });
     callback(filtrados.map(item => ({
       value: item.id_cliente || item.id_empleado || item.id_producto,
-      label: item[campo] || `${item.primer_nombre} ${item.primer_apellido}`,
-      precio: item.precio_unitario,
-      stock: item.stock
+      label: campo === 'nombre_producto'
+        ? item.nombre_producto
+        : `${item.primer_nombre} ${item.primer_apellido}`,
+      precio: item.precio_unitario || 0,
+      stock: item.stock || 0
     })));
   };
 
-  const manejarCliente = (sel) => {
+  const manejarCliente = sel => {
     setClienteSel(sel);
     setNuevaVenta(prev => ({ ...prev, id_cliente: sel ? sel.value : '' }));
   };
 
-  const manejarEmpleado = (sel) => {
+  const manejarEmpleado = sel => {
     setEmpleadoSel(sel);
     setNuevaVenta(prev => ({ ...prev, id_empleado: sel ? sel.value : '' }));
   };
 
-  const manejarProducto = (sel) => {
+  const manejarProducto = sel => {
     setProductoSel(sel);
     setNuevoDetalle(prev => ({
       ...prev,
       id_producto: sel ? sel.value : '',
-      precio_unitario: sel ? sel.precio : ''
+      precio_unitario: sel ? sel.precio : 0
     }));
   };
 
@@ -52,6 +56,8 @@ const ModalRegistroVenta = ({
     }
 
     const prod = productos.find(p => p.id_producto === parseInt(nuevoDetalle.id_producto));
+    if (!prod) return;
+
     if (nuevoDetalle.cantidad > prod.stock) {
       alert(`Stock insuficiente: ${prod.stock}`);
       return;
@@ -70,7 +76,9 @@ const ModalRegistroVenta = ({
 
   return (
     <Modal backdrop="static" show={mostrar} onHide={setMostrar} size="xl" fullscreen="lg-down">
-      <Modal.Header closeButton><Modal.Title>Nueva Venta</Modal.Title></Modal.Header>
+      <Modal.Header closeButton>
+        <Modal.Title>Nueva Venta</Modal.Title>
+      </Modal.Header>
       <Modal.Body>
         <Form>
           <Row>
@@ -145,7 +153,9 @@ const ModalRegistroVenta = ({
 
           {detalles.length > 0 && (
             <Table striped className="mt-3">
-              <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+              <thead>
+                <tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr>
+              </thead>
               <tbody>
                 {detalles.map((d, i) => (
                   <tr key={i}>

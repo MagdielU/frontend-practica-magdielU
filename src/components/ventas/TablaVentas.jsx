@@ -1,3 +1,4 @@
+// src/components/ventas/TablaVentas.jsx
 import { Table, Button, Pagination } from 'react-bootstrap';
 
 const TablaVentas = ({

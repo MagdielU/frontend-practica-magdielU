@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container, Row } from 'react-bootstrap';
 import Tarjeta from '../components/catalogo/Tarjeta';
+import { Zoom } from 'react-awesome-reveal';
 
 const Catalogo = () => {
   const [listaProductos, setListaProductos] = useState([]);
@@ -9,13 +10,14 @@ const Catalogo = () => {
   // Obtener productos
   const obtenerProductos = async () => {
     try {
-      const respuesta = await fetch('http://localhost:3000/api/productos');
+      const respuesta = await fetch('http://localhost:3000/api/producto');
       if (!respuesta.ok) throw new Error('Error al cargar los productos');
+
       const datos = await respuesta.json();
       setListaProductos(datos);
       setCargando(false);
     } catch (error) {
-      console.log("Error al cargar los productos.")
+      console.log('Error al cargar los productos.');
       setCargando(false);
     }
   };
